@@ -4,6 +4,7 @@ const fetch = require('node-fetch')
 // Willhaben Marketplace Categories: https://www.willhaben.at/sitemap/sitemapindex-marktplatz-detail.xml
 
 exports.getListings = getListings
+exports.getSpecificAd = getSpecificAd
 
 /**
  * gets the listings from an URL
@@ -32,6 +33,34 @@ function getListings(url) {
 
                     returnArray.push(returnObj)
                 })
+
+                res(returnArray)
+            })
+    })
+}
+
+function getSpecificAd(url) {
+    return new Promise((res, rej) => {
+        fetch(url)
+            .then(res => res.text())
+            .then(string => {
+                const temp = string.substr(string.indexOf('<script id="__NEXT_DATA__" type="application/json">') + '<script id="__NEXT_DATA__" type="application/json">'.length)
+                const result = JSON.parse(temp.substr(0, temp.indexOf('</script>')))
+                const returnArray = []
+
+                const returnObj = result.props.pageProps.advertDetails;
+
+                returnObj.attributes.attribute.forEach(element => {
+                    returnObj[element.name.toLowerCase()] = isNaN(element.values[0]) ? element.values[0] : +element.values[0];
+                });
+                
+                // delete useless keys
+                delete returnObj.attributes;
+                delete returnObj.contextLinkList;
+                delete returnObj.advertiserInfo;
+                delete returnObj.advertImageList;
+                
+                returnArray.push(returnObj);
 
                 res(returnArray)
             })
