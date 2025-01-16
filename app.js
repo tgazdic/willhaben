@@ -67,7 +67,7 @@ function getSpecificAd(url) {
     })
 }
 
-function getSpecificAdSpecificAttr(url, attributesToLoop) {
+function getSpecificAdSpecificAttr(url, fullAttributeNames, partialAttributeNames) {
     return new Promise((res, rej) => {
         fetch(url)
             .then(res => res.text())
@@ -83,7 +83,7 @@ function getSpecificAdSpecificAttr(url, attributesToLoop) {
                 });
 
                 // Populate filteredObj with only the desired attributes
-                attributesToLoop.forEach(attr => {
+                fullAttributeNames.forEach(attr => {
                     if (returnObj[attr] !== undefined) {
                         filteredObj[attr] = returnObj[attr];
                     }
@@ -91,10 +91,18 @@ function getSpecificAdSpecificAttr(url, attributesToLoop) {
 
                 returnObj.attributes.attribute.forEach(element => {
                     const attributeName = element.name.toLowerCase();
-                    if (attributeName.includes("general_text_advert")) {
-                        filteredObj[attributeName] = isNaN(element.values[0]) ? element.values[0] : +element.values[0];
-                    }
-                })
+                    partialAttributeNames.forEach(partialElem => {
+                        if (attributeName.includes(partialElem)) {
+                            if (filteredObj[partialElem]) {
+                                // Concatenate the new value with the existing value
+                                filteredObj[partialElem] += `, ${element.values[0]}`;
+                            } else {
+                                // Initialize the value
+                                filteredObj[partialElem] = element.values[0];
+                            }
+                        }
+                    });
+                });
                 
                 returnArray.push(filteredObj);
 
