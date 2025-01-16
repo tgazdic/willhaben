@@ -47,9 +47,8 @@ function getSpecificAd(url) {
             .then(string => {
                 const temp = string.substr(string.indexOf('<script id="__NEXT_DATA__" type="application/json">') + '<script id="__NEXT_DATA__" type="application/json">'.length)
                 const result = JSON.parse(temp.substr(0, temp.indexOf('</script>')))
-                const returnArray = []
-
                 const returnObj = result.props.pageProps.advertDetails;
+                const returnArray = []
 
                 returnObj.attributes.attribute.forEach(element => {
                     returnObj[element.name.toLowerCase()] = isNaN(element.values[0]) ? element.values[0] : +element.values[0];
@@ -75,14 +74,18 @@ function getSpecificAdSpecificAttr(url, attributesToLoop) {
             .then(string => {
                 const temp = string.substr(string.indexOf('<script id="__NEXT_DATA__" type="application/json">') + '<script id="__NEXT_DATA__" type="application/json">'.length);
                 const result = JSON.parse(temp.substr(0, temp.indexOf('</script>')));
-                const returnArray = [];
                 const returnObj = result.props.pageProps.advertDetails;
+                const returnArray = [];
                 const filteredObj = {};
                 
+                returnObj.attributes.attribute.forEach(element => {
+                    returnObj[element.name.toLowerCase()] = isNaN(element.values[0]) ? element.values[0] : +element.values[0];
+                });
+
+                // Populate filteredObj with only the desired attributes
                 attributesToLoop.forEach(attr => {
-                    const element = returnObj.attributes.attribute.find(el => el.name.toLowerCase() === attr);
-                    if (element) {
-                        filteredObj[attr] = isNaN(element.values[0]) ? element.values[0] : +element.values[0];
+                    if (returnObj[attr] !== undefined) {
+                        filteredObj[attr] = returnObj[attr];
                     }
                 });
                 
