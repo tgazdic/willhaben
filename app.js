@@ -54,6 +54,8 @@ async function getEnrichedListings(url, fullAttributeNames, partialAttributeName
                 returnObj[element.name.toLowerCase()] = isNaN(element.values[0]) ? element.values[0] : +element.values[0];
             });
 
+            delete returnObj.description; // this will be extracted in full in the next step
+
             const stringPrefix = "https://www.willhaben.at/iad/"
 
             // Use seo_url to get additional attributes
