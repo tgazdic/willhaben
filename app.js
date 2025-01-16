@@ -4,6 +4,7 @@ const fetch = require('node-fetch')
 // Willhaben Marketplace Categories: https://www.willhaben.at/sitemap/sitemapindex-marktplatz-detail.xml
 
 exports.getListings = getListings
+exports.getEnrichedListings = getEnrichedListings
 exports.getSpecificAd = getSpecificAd
 exports.getSpecificAdSpecificAttr = getSpecificAdSpecificAttr
 
@@ -38,6 +39,44 @@ function getListings(url) {
                 res(returnArray)
             })
     })
+}
+
+async function getEnrichedListings(url, fullAttributeNames, partialAttributeNames) {
+    try {
+        const response = await fetch(url);
+        const string = await response.text();
+        const temp = string.substr(string.indexOf('<script id="__NEXT_DATA__" type="application/json">') + '<script id="__NEXT_DATA__" type="application/json">'.length);
+        const result = JSON.parse(temp.substr(0, temp.indexOf('</script>')));
+        const returnArray = [];
+
+        for (const returnObj of result.props.pageProps.searchResult.advertSummaryList.advertSummary) {
+            returnObj.attributes.attribute.forEach(element => {
+                returnObj[element.name.toLowerCase()] = isNaN(element.values[0]) ? element.values[0] : +element.values[0];
+            });
+
+            const stringPrefix = "https://www.willhaben.at/iad/"
+
+            // Use seo_url to get additional attributes
+            const extraAttributes = await getSpecificAdSpecificAttr(stringPrefix+returnObj.seo_url, fullAttributeNames, partialAttributeNames);
+            
+            // delete useless keys
+            delete returnObj.attributes;
+            delete returnObj.contextLinkList;
+            delete returnObj.advertiserInfo;
+            delete returnObj.advertImageList;
+            delete returnObj.teaserAttributes;
+            delete returnObj.children;
+            
+            // Merge extraAttributes into returnObj
+            Object.assign(returnObj, extraAttributes[0]);
+
+            returnArray.push(returnObj);
+        }
+
+        return returnArray;
+    } catch (err) {
+        throw new Error(err);
+    }
 }
 
 function getSpecificAd(url) {
