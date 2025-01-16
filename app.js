@@ -5,6 +5,7 @@ const fetch = require('node-fetch')
 
 exports.getListings = getListings
 exports.getSpecificAd = getSpecificAd
+exports.getSpecificAdSpecificAttr = getSpecificAdSpecificAttr
 
 /**
  * gets the listings from an URL
@@ -65,6 +66,32 @@ function getSpecificAd(url) {
                 res(returnArray)
             })
     })
+}
+
+function getSpecificAdSpecificAttr(url, attributesToLoop) {
+    return new Promise((res, rej) => {
+        fetch(url)
+            .then(res => res.text())
+            .then(string => {
+                const temp = string.substr(string.indexOf('<script id="__NEXT_DATA__" type="application/json">') + '<script id="__NEXT_DATA__" type="application/json">'.length);
+                const result = JSON.parse(temp.substr(0, temp.indexOf('</script>')));
+                const returnArray = [];
+                const returnObj = result.props.pageProps.advertDetails;
+                const filteredObj = {};
+                
+                attributesToLoop.forEach(attr => {
+                    const element = returnObj.attributes.attribute.find(el => el.name.toLowerCase() === attr);
+                    if (element) {
+                        filteredObj[attr] = isNaN(element.values[0]) ? element.values[0] : +element.values[0];
+                    }
+                });
+                
+                returnArray.push(filteredObj);
+
+                res(returnArray);
+            })
+            .catch(err => rej(err));
+    });
 }
 
 const categories = Object.freeze({
