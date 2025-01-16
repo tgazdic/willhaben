@@ -88,6 +88,13 @@ function getSpecificAdSpecificAttr(url, attributesToLoop) {
                         filteredObj[attr] = returnObj[attr];
                     }
                 });
+
+                returnObj.attributes.attribute.forEach(element => {
+                    const attributeName = element.name.toLowerCase();
+                    if (attributeName.includes("general_text_advert")) {
+                        filteredObj[attributeName] = isNaN(element.values[0]) ? element.values[0] : +element.values[0];
+                    }
+                })
                 
                 returnArray.push(filteredObj);
 
